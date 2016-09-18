@@ -1,0 +1,307 @@
+(*
+  This is a bot to help griding in the Midas Gold Plus browser
+  flash game.
+              
+  
+  Roadmap:
+
+
+                       
+  
+  Changelog:    
+  
+  v0.1.5:
+  - add a feature to get Login bonus when it wears off (~12h): 
+    refresh the browser page and set up casting the skills. 
+    -- If book icon is found:
+    -- If we can't find the "Blessing of Apollo" icon on the screen:
+    -- Move mouse cursor close to it. If still can't find:
+    -- press ctrl + R for refresing the browser tab
+    -- wait for a minute
+    -- find and press "Play muted" button
+    -- press Lvl Up thingy for 25x multiplier
+    -- set the skills:
+      -- for Energy mode - press staff, press 3 skills, 
+         press cross, move cursor to exit position    
+  
+  v0.1.4:
+  - improved logging features: added time, ad info
+  - added movement of a mouse cursor every 4 minutes 
+    even if the game is not in focus
+  - fixed the book BMP: it couldn't be found in some instances            
+  
+  v0.1.3:
+  - add a feature not to move mouse cursor if a user moved it.
+   (still needs testing!)
+  
+  v0.1.2: 
+  - add a feature to watch an ad once an hour 
+    -- after each hourly cycle of the main loop:
+    -- Click the Store icon
+    -- Click Free Gem icon
+    -- Click Watch icon, wait for 1m
+    -- Click Later icon
+    -- Click Exit Store icon   
+                                                 
+  v0.1.1: 
+  - Fixed a bug where moving the browser window broke 
+  the focus of the bot 
+  - Made game loops 4m instead of 5m
+  
+  v0.1: 
+  - Bot can identify a book icon and click on the university
+  researches and on the traids once in 5 minutes.
+
+*)
+
+
+program bot_midas;
+var 
+    bookBMP, nextBMP, helmBMP, playMutedBMP: integer;
+    bookX, bookY: integer;
+    x, y: integer; 
+    tempX, tempY:integer;
+    //counter: integer;
+    lastX, lastY: integer;
+          
+    
+procedure ClickMouse1( x, y: longint; btn: TMouseButton );
+begin
+  MoveMouse(x, y);
+  sleep(100);
+  ClickMouse(x, y, btn);
+  sleep(200);
+end;
+
+
+procedure LogTime;
+begin
+  Write(TimeToStr(Time()));
+  Write(' ');
+end;
+
+
+function CheckMouseMoved(var x, y: LongInt): Boolean;
+var
+  ty, tx: integer;
+begin
+  // GetMousePos 
+  GetMousePos(tx, ty);     
+  
+  if ((x <> tx) or (y <> ty)) then begin
+    x := tx;
+    y := ty;
+    result := True;
+  end else begin
+    result := False;
+  end;         
+    
+end;
+
+
+    
+begin
+
+    playMutedBMP := TSCARBitmap.Create('deNrTYWBiOL2tVVVFSVlZUVVZUUNFEciwtzF6d' +
+    'nbq7L5sOVU1CJJWVpZTVVVQ15BXU4cLQpCMioqsiqqXlx1Qy4qZxdKqauLKKtu' +
+    'X1wC5cNTTnAIUl1DVkFDTXD23DCji5uMkpqrp4uUIVxMd6iKtqCiloCivCHJDd' +
+    '30CUNDd3UZSUQloBdwZQLvQHABxFVCNh4cNUMvyGUViyspSqqqxMV7Ibrh9pF9' +
+    'JR0tMRd3Cwerpmam7VtYBHSCgounqDXUDAGRCWNg=');
+
+    helmBmp := TSCARBitmap.Create('deNoBUgCt/w0AAgD47r7x5LO/n2S2lFSuiliqg' +
+    'lKjc0mBVzBmRSVPNiE5IhcpDggoDAf27sG+o27Epm20kVSui1imfE2OZDx/VTB' +
+    'pRytWOCU0GhRBIxoxFhDYbSBO');
+    
+    bookBMP := TSCARBitmap.Create('deNoTYmBiqJQTnaog3ikv1q0kOVlNdpq63CR1u' +
+    'T51uXnaipv0VXYaqu4wUN1vrH7YRHOvkfpZU827FjqNGtKTFcTb5ESBWmZqyM/' +
+    'VUpijpTBLS2G9PlCl5g5DNaD6s2Za58y0Tptq7jNSP2+m+dRaL1NZDAAmQyLP');
+    
+    nextBMP := TSCARBitmap.Create('deNpTZWBicLJQdLGGInc7KAlBXo4gEqgAhGwUX' +
+    'eygyN0eJAWStVd0d1CGIF9XNSACKoMgFxtld0c1IAIyJvTU/geDzraS2BCH2rJ' +
+    '0CEoId4kOtpk5pXn+rO6i7AiI7RD3AE3wclKpq0ieN7tn4bwJbY25vm6aEOtqy' +
+    'pNqK9MbazKACMjwdtWuKk2qr8xorM2KCLJKi/XevH4pxLp1axYAAPvrTfk=');   
+    
+    
+  GetMousePos(lastX, lastY);
+  sleep (2 * 1000);        
+    
+
+  while 1 = 1 do begin     
+  
+    while CheckMouseMoved(lastX, lastY) do begin 
+      LogTime();
+      Writeln('Mouse moved!');
+      sleep(2 * 60 * 1000);
+    end;
+  
+     
+    // Reset client area
+    GetClient.Update;
+  
+    MoveMouse(bookX-39+ 810, bookY-417+ 248);                                           
+    MoveMouse(bookX-39+ 1010, bookY-417+ 248);
+
+    
+    if FindBitmap(bookX, bookY, bookBMP, 0, 0, 1000, 1000) then begin
+    
+      // Focus on the client area
+      GetClient.Activate;
+
+      LogTime();
+      Write('Book bitmap is found at ');
+      write(bookX); Write(' ');
+      writeln(bookY);  
+                                 
+      
+      
+                           
+      // Click book - 39 417
+      ClickMouse1(bookX-39+ 39, bookY-417+ 417, mbLeft);
+      
+
+      for x := 3 downto 0 do begin
+        for y := 2 downto 0 do begin
+          // Knowledge researches:
+          // 0 0: 605 565   
+          // 3 2: 937 790         
+          tempX := floor(bookX - 39 + 605+(937-605) / 3 * x); 
+          tempY := floor(bookY - 417 + 565+(790-565) / 2 * y);     
+          ClickMouse1(tempX, tempY, mbLeft);
+        
+        end;
+      end;
+      
+      
+      // Exit Uni: 1010 248   
+      ClickMouse1(bookX-39+ 1010, bookY-417+ 248, mbLeft);
+       
+      
+      // Click blade - 165 419  
+      ClickMouse1(bookX-39+ 165, bookY-417+ 419, mbLeft);
+      
+      
+      for x := 0 to 4 do begin
+        
+        // Get loot:
+        // 0: 584 620
+        // 4: 584 766         
+        ClickMouse1(bookX-39+ 584, floor(bookY-417+ 620 + (766-620)/4*x), mbLeft);
+        
+        // Go raid:
+        // 0: 288 620
+        // 4: 288 766     
+        ClickMouse1(bookX-39+ 288, floor(bookY-417+ 620 + (766-620)/4*x), mbLeft);
+        
+      end;
+      
+      // Exit Raids: 1010 248  
+      ClickMouse(bookX-39+ 1010, bookY-417+ 248, mbLeft);
+      //sleep(1000);       
+              
+
+      // Try to watch an ad
+      //-- after each hourly cycle of the main loop:  
+      //-- Click the Store icon - 970 270                       
+      ClickMouse1(bookX-39+ 970, bookY-417+ 270, mbLeft);
+        
+      //-- Click Free Gem icon - 990 330
+      ClickMouse1(bookX-39+ 990, bookY-417+ 330, mbLeft);
+        
+      //-- Click Watch icon - 320 510
+      ClickMouse1(bookX-39+ 320, bookY-417+ 510, mbLeft);
+      // wait 5secs
+      sleep (1 * 1000);  
+        
+      // check if "next advertisment" appeared
+      if not FindBitmap(tempX, tempY, nextBMP, 0, 0, 1000, 1000) then begin 
+        LogTime();
+        Writeln('Watching an ad');
+          
+        // wait for 55secs 
+        sleep(59 * 1000);
+          
+        // Press Escape button
+        PressVKeyEx(VK_ESCAPE, 250);
+        // wait for 2 secs
+        sleep(2 * 1000);   
+      end else begin
+        LogTime();
+        Writeln('No ad for us');       
+      end;
+        
+        
+      //-- Click Later icon - 445 510
+      ClickMouse1(bookX-39+ 445, bookY-417+ 510, mbLeft);  
+        
+        
+      //-- Click Exit Store icon - 1010 248 
+      ClickMouse1(bookX-39+ 1010, bookY-417+ 248, mbLeft);
+                       
+      
+      
+      
+    //- add a feature to get Login bonus when it wears off (~12h): 
+    //refresh the browser page and set up casting the skills. 
+    //-- If book icon is found:       
+    //-- If we can't find the "Blessing of Apollo" icon on the screen:
+    if not FindBitmap(tempX, tempY, helmBMP, 0, 0, 1000, 1000) then begin 
+      LogTime();
+      Writeln('Apollo Helm not found: refreshing browser page');
+    
+      //-- press ctrl + R for refresing the browser tab 
+      PressVKeyEx(VK_BROWSER_REFRESH, 250);
+      
+      repeat            
+        //-- wait for a few seconds 
+        sleep(5*1000); 
+                       
+        LogTime();
+        Writeln('Trying to find PlayMuted button');
+  
+      until FindBitmap(tempX, tempY, playMutedBMP, 0, 0, 1000, 1000);
+      
+      //-- press "Play muted" button 
+      ClickMouse1(tempX, tempY, mbLeft);
+      
+      sleep(3 * 1000);
+      
+      FindBitmap(bookX, bookY, bookBMP, 0, 0, 1000, 1000);
+
+
+      //-- press Lvl Up thingy for 25x multiplier - 985 640
+      ClickMouse1(bookX-39+ 985, bookY-417+ 640, mbLeft);
+      
+      
+      //-- set the skills:
+      //  -- for Energy mode - press staff, press 3 skills,
+      // 310 830, 215 635, 270 635, 365 635
+      ClickMouse1(bookX-39+ 310, bookY-417+ 830, mbLeft);
+      ClickMouse1(bookX-39+ 215, bookY-417+ 635, mbLeft);
+      ClickMouse1(bookX-39+ 270, bookY-417+ 635, mbLeft);
+      ClickMouse1(bookX-39+ 365, bookY-417+ 635, mbLeft);
+
+        
+      // press cross, move cursor to exit position - 445 520
+      ClickMouse1(bookX-39+ 445, bookY-417+ 520, mbLeft);
+
+        
+    end else begin
+      LogTime();
+      Writeln('Apollo Helm found');
+    end;
+                
+      
+      
+    end else begin
+      LogTime();
+      Writeln('Book bitmap has not been found!');
+    end;  
+    
+    
+
+  
+    Sleep(4 * 60 * 1000)
+  end;
+
+
+end.
